@@ -25,12 +25,16 @@ module.exports = class CarrierPigeon {
       this.env = true;
     }
 
+    if (this.cmds == undefined) {
+      this.cmds = [];
+    }
+
     if (this.options == undefined) {
-      this.options = {}
+      this.options = {};
     }
 
     if (this.defaults == undefined) {
-      this.defaults = {}
+      this.defaults = {};
     }
 
     if (this.envMap == undefined) {
@@ -67,6 +71,14 @@ module.exports = class CarrierPigeon {
     if (this.options[name].type == undefined) {
       this.options[name].type = 'string';
     }
+  }
+
+  command(cmd:string) {
+    this.cmds.push(cmd);
+  }
+
+  commands(...cmds:string[]) {
+    this.cmds = cmds;
   }
 
   option(name:string, options:any={}) {
@@ -182,6 +194,9 @@ module.exports = class CarrierPigeon {
       if (mode == 'cull') {
         if (self.isFlag(argv[index])) {
 	  mode = 'interpret';
+	} else if (self.cmds.indexOf(argv[index]) > -1) {
+	  options.command = argv[index];
+	  argv.shift();
 	} else {
 	  argv.shift();
 	}

@@ -3,6 +3,26 @@ var assert      = require('assert');
 var CarrierPigeon = require(path.join(__dirname, '..'));
 
 describe('CarrierPigeon', () => {
+  it('add optional command prior to flags', () => {
+    const parser = new CarrierPigeon({strict: true});
+    parser.commands('doowap', 'shebang', 'bamboozle', 'abscond')
+    parser.option('symbols', {default: ["BAT-USDC"], type: 'array'})
+    parser.option('verbose', {default: true})
+    parser.option('sandbox', { default: true });
+    parser.option('key', { default: 'key' });
+    parser.option('secret', { default: 'secret' });
+    parser.option('passphrase', { default: 'passphrase' })
+
+    var options = parser.parse(['node', 'collection/', 'doowap','-s', 'BTC-USD', '-s', 'ETH-BTC'])
+
+    assert.equal(options.command, 'doowap')
+    assert.equal(process.env.NODE_ENV, 'production')
+    assert.equal(options.verbose, true)
+  });
+ 
+
+
+
   it('checking command that keeps failing', () => {
     const parser = new CarrierPigeon({strict: true});
     parser.option('symbols', {default: ["BAT-USDC"], type: 'array'})
