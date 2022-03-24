@@ -1,6 +1,6 @@
 {
   "name": "carrier-pigeon",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "command line parser that is dece chill",
   "main": "index.js",
   "scripts": {

@@ -288,7 +288,9 @@ module.exports = class CarrierPigeon {
   forEnv(gathered:any={}) {
     var self = this;
     Object.keys(this.envMap).forEach((variable) => {
-      process.env[self.envMap[variable]] = gathered[variable];
+      if (gathered[variable] != undefined) {
+        process.env[self.envMap[variable]] = gathered[variable];
+      }
     })
   }
 

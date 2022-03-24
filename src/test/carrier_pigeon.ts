@@ -19,8 +19,6 @@ describe('CarrierPigeon', () => {
     assert.equal(process.env.NODE_ENV, 'production')
     assert.equal(options.verbose, true)
   });
- 
-
 
 
   it('checking command that keeps failing', () => {
