@@ -16,7 +16,6 @@ describe('CarrierPigeon', () => {
     var options = parser.parse(['node', 'collection/', 'doowap','-s', 'BTC-USD', '-s', 'ETH-BTC'])
 
     assert.equal(options.command, 'doowap')
-    assert.equal(process.env.NODE_ENV, 'production')
     assert.equal(options.verbose, true)
   });
 
@@ -32,7 +31,6 @@ describe('CarrierPigeon', () => {
 
     var options = parser.parse(['node', 'collection/', '-s', 'BTC-USD', '-s', 'ETH-BTC'])
 
-    assert.equal(process.env.NODE_ENV, 'production')
     assert.equal(options.verbose, true)
   });
   
@@ -372,31 +370,27 @@ describe('CarrierPigeon', () => {
     assert.equal(options.symbols[1], 'ETH-BTC')
   });
 
-  it('negating non boolean', () => {
+  it('should show the help flag as true', () => {
     const parser = new CarrierPigeon();
     
     parser.option('env', {default: "development", env: "NODE_ENV"})
     parser.option('speed', {type: 'number'})
     parser.option('log')
     parser.option('verbose', {default: false})
+    parser.option('help', {default: false})
 
     var options = parser.parse([
       'node','bin/parser.js',
-      "--verbose", 
-      '-e', 'production', 
-      '--log', 'test'
+      "--help" 
     ])
-    assert.equal(process.env.NODE_ENV, 'production')
-    assert.equal(options.log, 'test')
-    
+    assert.equal(options.help, true)
+
     var options = parser.parse([
       'node','bin/parser.js',
-      "--verbose", 
-      '-e', 'production', 
-      '--no-log'
+      "-h" 
     ])
-    assert.equal(process.env.NODE_ENV, 'production')
-    assert.equal(options.log, false)
+    assert.equal(options.help, true)
+
   });
 
 });

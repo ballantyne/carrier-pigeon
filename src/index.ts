@@ -73,12 +73,172 @@ module.exports = class CarrierPigeon {
     }
   }
 
-  command(cmd:string) {
+  command(cmd:any) {
+    if (typeof cmd == 'string') {
+      cmd = {name: cmd}
+    }
     this.cmds.push(cmd);
   }
 
-  commands(...cmds:string[]) {
+  commands(...cmds:any[]) {
+    cmds = cmds.map((cmd:any) => {
+      if (typeof cmd == 'string') {
+	cmd = {name: cmd}
+      }
+      return cmd;
+    })
     this.cmds = cmds;
+  }
+
+  dashedLine(length=80) {
+    return Array(length).join('-');
+  }
+
+  longest(list:any, name:string) {
+    var length = 0;
+    for (var i = 0; i < list.length; i++) {
+      var command = list[i];
+      if (length < list[i][name].length) {
+	length = list[i][name].length;
+      }
+    }
+    return length;
+  }
+
+  getColumnSizes(keys:any[]) {
+    var widest = {type: 0, flags: 0, names: 0};
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var type = (this.options[key].type == 'boolean' ? '' : `<${this.options[key].type}>`);
+      var flags = this.options[key].flags.join(', ')
+      if (widest.type < type.length) {
+	widest.type = type.length;
+      }
+      if (widest.flags < flags.length) {
+	widest.flags = flags.length;
+      }
+      if (widest.names < key.length) {
+	widest.names = key.length;
+      }
+    }
+    return widest; 
+  }
+
+  usage() {
+    //var self = this;
+    var entries = [];
+    var keys = Object.keys(this.options);
+
+    if (this.cmds.length > 0) {  
+      entries.push(this.dashedLine(80))
+      var widestName = this.longest(this.cmds, 'name');
+      
+      for (var i = 0; i < this.cmds.length; i++) {  
+	var command = this.cmds[i];
+	var entry = [
+	  '  ',
+	  this.column({
+	    string: this.cmds[i].name,
+	    width: widestName+15,
+	    align: 'left'
+	  })
+	]
+
+	if (this.cmds[i].description != undefined) {
+	  entry.push(this.multilineColumn({
+	    text: this.cmds[i].description,
+	    width: 50-widestName,
+	    padding: widestName+16
+	  }))
+	  if (this.cmds[i].description.length > 40) {
+	    entry.push("\n")
+	  }
+	}
+        entries.push(entry.join(''));
+      }
+      entries.push(this.dashedLine(80))
+    }
+
+    var widest = this.getColumnSizes(keys);   
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var type = (this.options[key].type == 'boolean' ? '' : `<${this.options[key].type}>`);
+      var flags = this.options[key].flags.join(', ')
+      var padding = (widest.type+widest.flags+9)
+      entries.push([
+	' ',
+	this.column({
+	  string: this.options[key].flags.join(', '),
+	  width: widest.flags+3,
+	  align: 'left'
+	}),
+	this.column({
+	  string: type,
+	  width: widest.type+3,
+	  align: 'left'
+	}),
+	this.column({
+	  string: key,
+	  width: widest.names+3,
+	  align: 'left'
+	}),
+	this.multilineColumn({
+	  text: this.options[key].description,
+	  width: padding-5,
+	  padding: padding+7
+	})
+      ].join(''));
+    }
+    return entries;
+  }
+
+  printUsage() {
+    console.log(this.usage().join("\n"))
+    console.log();
+  }
+
+  column(options:any) {
+    var stringLen = options.string.length
+    var difference = options.width - stringLen;
+    var padding = Array(difference).join(' ');
+    if (options.align == 'left') {
+      return [options.string, padding].join('')
+    } else if (options.align == 'right'){
+      return [padding, options.string].join('')
+    }
+  }
+
+  multilineColumn(options:any) {
+    var first = true;
+    var words = options.text.split(' ');
+
+    function addLine(collection:any, line:string, firstLine:boolean) {
+      if (firstLine) {
+	collection.text.push(line);
+      } else {
+	collection.text.push([Array(options.padding+1).join(' '), line].join(''))
+      }
+      return collection;
+    }
+
+    return words.reduce((collection:any, word:string, index:number) => {
+      var willBeLonger = (collection.line.join(" ").length + word.length+1) > options.width;
+
+      if (willBeLonger) {
+	var line = collection.line.join(' ')
+	collection.line = [word];
+	collection = addLine(collection, line, first);
+	first = false;
+      } else {
+        collection.line.push(word)
+      }
+
+      if (words.length == index+1) {
+        collection = addLine(collection, collection.line.join(' '), first)
+      }
+
+      return collection;
+    }, {text: [], line: []}).text.join("\n")
   }
 
   option(name:string, options:any={}) {
@@ -102,10 +262,12 @@ module.exports = class CarrierPigeon {
       });
     } else {
       var initial = name.substring(0,1)
-      self.flags[`--${name}`] = name;
       if (self.flags[`-${initial}`] == undefined) {
 	self.flags[`-${initial}`] = name;
       }
+
+      self.flags[`--${name}`] = name;
+      self.options[name].flags = [`-${initial}`, `--${name}`];
     }   
   }
 
@@ -138,15 +300,19 @@ module.exports = class CarrierPigeon {
   }
 
   deflag(flag:string) {
-    if (/--.+/.test(flag)) {
-      return flag.replace('--', '');
+    if (/^--.+/.test(flag)) {
+      if (this.strict || this.flags[flag] != undefined) {
+	return this.flags[flag]
+      } else {
+	return flag.replace('--', '')
+      }
     } else {
-      return flag.replace('-', '');
+      return this.flags[flag]
     }
   }
 
   isFlag(input:string) {
-    return /-.+/.test(input);
+    return /^-.+/.test(input);
   }
 
   isBoolean(flag:string) {
@@ -189,12 +355,12 @@ module.exports = class CarrierPigeon {
     var instances:any = {};
 
     var current:any;
-    
+
     while(index <= argv.length-1) {
       if (mode == 'cull') {
         if (self.isFlag(argv[index])) {
 	  mode = 'interpret';
-	} else if (self.cmds.indexOf(argv[index]) > -1) {
+	} else if (self.cmds.map((cmd:any) => { return cmd.name }).indexOf(argv[index]) > -1) {
 	  options.command = argv[index];
 	  argv.shift();
 	} else {
