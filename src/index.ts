@@ -347,8 +347,9 @@ module.exports = class CarrierPigeon {
     return ['--', word].join('')
   }
 
-  parse(argv:any[]=[]) {
+  parse(args:any[]=[]) {
     var self    = this;
+    var argv    = JSON.parse(JSON.stringify(args));
     var index   = 0;
     var options = JSON.parse(JSON.stringify(this.defaults));
     var mode    = 'cull';

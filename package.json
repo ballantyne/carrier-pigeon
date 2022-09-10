@@ -1,7 +1,7 @@
 {
   "name": "carrier-pigeon",
-  "version": "0.0.5",
-  "description": "command line parser that is dece chill",
+  "version": "0.1.0",
+  "description": "command line parser that has no dependencies",
   "main": "index.js",
   "scripts": {
     "mocha": "ts-mocha -w -p tsconfig.json src/**/*.ts",
