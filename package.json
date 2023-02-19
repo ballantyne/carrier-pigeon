@@ -1,13 +1,13 @@
 {
   "name": "carrier-pigeon",
-  "version": "0.1.3",
+  "version": "0.1.10",
   "description": "command line parser that has no dependencies",
   "keywords": [
     "command",
     "line",
     "interface",
     "secure",
-    "CLI"
+    "cli"
   ],
   "main": "index.js",
   "scripts": {
