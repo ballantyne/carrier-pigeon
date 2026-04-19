@@ -1,7 +1,20 @@
-# CarrierPigeon
+# carrier-pigeon
 
-I made this because the warnings about minimist and yargs were stressing me out.  Maybe those problems are fixed now, but I made this anyway, so give it a try if you feel the urge.  If there is popular acclaim, I will consider putting in the effort to make a kick ass readme to go along with.
+```bash
+   npm install carrier-pigeon --save
+```
 
-Hopefully the carrer pigeon is secure.  Fingers crossed.
+```javascript
+    var parser = new CarrierPigeon();
+    parser.commands('init', 'start');
+    parser.option('env', {default: "development", env: "NODE_ENV"})
+    parser.option('verbose', {default: false})
+    
+    var options = parser.parse(process.argv);
+    if (options.verbose) {
+      console.log(options);
+    }
 
-MIT License
+```
+
+
